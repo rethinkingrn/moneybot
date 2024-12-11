@@ -40,7 +40,6 @@ async def on_ready():
 @bot.event
 async def setup_hook():
     bot.db = db  # Attach the database to the bot instance
-    await bot.load_extension('commands.hello')
     await bot.load_extension('commands.coinflip')
    # await bot.load_extension('commands.dupe')
     await bot.load_extension('commands.setbalance')
