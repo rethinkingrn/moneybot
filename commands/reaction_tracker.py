@@ -42,16 +42,16 @@ class ReactionTracker(commands.Cog):
 
         # Determine rewards based on the emoji
         if str(reaction.emoji) == "💀":
-            self.reward_users(reactor_id, message_author_id, 100, 1000)
+            self.reward_users(reactor_id, message_author_id, 200, 1000)
             print(f"💀 reaction: User {reactor_id} reacted to message by {message_author_id}.")
         elif str(reaction.emoji) == "😂":
-            self.reward_users(reactor_id, message_author_id, 25, 250)
+            self.reward_users(reactor_id, message_author_id, 50, 250)
             print(f"😂 reaction: User {reactor_id} reacted to message by {message_author_id}.")
         elif str(reaction.emoji) == "🐐":
-            self.reward_users(reactor_id, message_author_id, 150, 1500)
+            self.reward_users(reactor_id, message_author_id, 300, 1500)
             print(f"🐐 reaction: User {reactor_id} reacted to message by {message_author_id}.")
         elif str(reaction.emoji) == "✅":
-            self.reward_users(reactor_id, message_author_id, 75, 750)
+            self.reward_users(reactor_id, message_author_id, 150, 750)
             print(f"✅ reaction: User {reactor_id} reacted to message by {message_author_id}.")
 
     def reward_users(self, reactor_id, message_author_id, reactor_reward, author_reward):

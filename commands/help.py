@@ -25,7 +25,7 @@ class Help(commands.Cog):
         example_embed.set_author(
             name="Money Bot v4",
             icon_url="https://media.discordapp.net/attachments/958955499565514795/1086017019440275507/8D7BD66D-2628-4E8F-8DFE-2ECC00FB9D35.jpg?width=842&height=1122",
-            url="https://akatsuki.px"
+            url="https://git.rethinkingrn.xyz/matthew/moneybot"
         )
         example_embed.set_thumbnail(url="https://media.discordapp.net/attachments/958955499565514795/1085993892412936293/IMG_20230316_133149.jpg?width=842&height=1122")
         example_embed.add_field(name="Uptime", value=uptime)

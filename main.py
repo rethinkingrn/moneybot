@@ -49,6 +49,8 @@ async def setup_hook():
     await bot.load_extension('commands.help')
     await bot.load_extension('commands.banner')
     await bot.load_extension('commands.reaction_tracker')
+    await bot.load_extension('commands.give')
+    await bot.load_extension('commands.balance')
 
 
 # Run the bot
