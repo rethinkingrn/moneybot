@@ -52,6 +52,7 @@ async def setup_hook():
     # await bot.load_extension('commands.blackjack')
     await bot.load_extension('commands.balance')
     await bot.load_extension('commands.roll')
+    await bot.load_extension('commands.losstop')
 
 
 # Run the bot

@@ -34,33 +34,37 @@ class ReactionTracker(commands.Cog):
             return
 
         reactor_id = str(user.id)  # ID of the person reacting
+        message_id = str(reaction.message.id)  # ID of the reacted message
         message_author_id = str(reaction.message.author.id)  # ID of the message author
 
         # Ignore reactions to their own message
         if reactor_id == message_author_id:
             return
 
+        # Check if the user has already reacted to this message
+        reactor_data = self.db.users.find_one({"user_id": reactor_id})
+        if reactor_data and message_id in reactor_data.get("reacted_messages", []):
+            # User has already reacted to this message; no further rewards
+            return
+
         # Determine rewards based on the emoji
         if str(reaction.emoji) == "💀":
-            self.reward_users(reactor_id, message_author_id, 200, 1000)
-            print(f"💀 reaction: User {reactor_id} reacted to message by {message_author_id}.")
+            self.reward_users(reactor_id, message_author_id, message_id, 200, 1000)
         elif str(reaction.emoji) == "😂":
-            self.reward_users(reactor_id, message_author_id, 50, 250)
-            print(f"😂 reaction: User {reactor_id} reacted to message by {message_author_id}.")
+            self.reward_users(reactor_id, message_author_id, message_id, 50, 250)
         elif str(reaction.emoji) == "🐐":
-            self.reward_users(reactor_id, message_author_id, 300, 1500)
-            print(f"🐐 reaction: User {reactor_id} reacted to message by {message_author_id}.")
+            self.reward_users(reactor_id, message_author_id, message_id, 300, 1500)
         elif str(reaction.emoji) == "✅":
-            self.reward_users(reactor_id, message_author_id, 150, 750)
-            print(f"✅ reaction: User {reactor_id} reacted to message by {message_author_id}.")
+            self.reward_users(reactor_id, message_author_id, message_id, 150, 750)
 
-    def reward_users(self, reactor_id, message_author_id, reactor_reward, author_reward):
+    def reward_users(self, reactor_id, message_author_id, message_id, reactor_reward, author_reward):
         """
         Reward the reactor and the message author.
 
         Args:
         - reactor_id (str): User ID of the reactor.
         - message_author_id (str): User ID of the message author.
+        - message_id (str): The ID of the message being reacted to.
         - reactor_reward (int): Reward for the reactor.
         - author_reward (int): Reward for the message author.
         """
@@ -69,13 +73,16 @@ class ReactionTracker(commands.Cog):
         if reactor_data:
             self.db.users.update_one(
                 {"user_id": reactor_id},
-                {"$inc": {"balance": reactor_reward}}
+                {
+                    "$inc": {"balance": reactor_reward},
+                    "$addToSet": {"reacted_messages": message_id},  # Add the message ID to the reacted list
+                }
             )
         else:
             self.db.users.insert_one({
                 "user_id": reactor_id,
                 "balance": reactor_reward,
-                "reacted_messages": []
+                "reacted_messages": [message_id]
             })
 
         # Reward the message author

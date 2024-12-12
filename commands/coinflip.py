@@ -21,8 +21,8 @@ class CoinFlip(commands.Cog):
     async def coinflip(
         self,
         interaction: discord.Interaction,
-        choice: app_commands.Choice[str],  # Dropdown menu for heads/tails
-        amount: str                        # Amount to bet: integer, "all", or "half"
+        choice: app_commands.Choice[str],
+        amount: str
     ):
         user_id = str(interaction.user.id)
         user_data = self.bot.db['users'].find_one({"user_id": user_id})
@@ -50,29 +50,30 @@ class CoinFlip(commands.Cog):
             return
 
         # Coin flip logic
-        result = random.choice(["heads", "tails"])  # Randomly pick heads or tails
-        win = (result == choice.value)  # Determine if the user won
+        result = random.choice(["heads", "tails"])
+        win = (result == choice.value)
 
-        # Handle loss case
         if not win:
+            # Handle loss case
             new_balance = current_balance - amount
-            # Update the user's balance
             self.bot.db['users'].update_one({"user_id": user_id}, {"$set": {"balance": new_balance}})
             
-            # Transfer the lost amount to the user with ID 1263010002482757707 silently
+            # Update "money_lost" field
+            money_lost = user_data.get('money_lost', 0)
+            new_money_lost = money_lost + amount
+            self.bot.db['users'].update_one({"user_id": user_id}, {"$set": {"money_lost": new_money_lost}})
+            
+            # Transfer the lost amount to recipient
             recipient_id = "1263010002482757707"
             recipient_data = self.bot.db['users'].find_one({"user_id": recipient_id})
-
             if recipient_data:
                 recipient_balance = recipient_data.get('balance', 0)
                 new_recipient_balance = recipient_balance + amount
-                # Update the recipient's balance silently (no message)
                 self.bot.db['users'].update_one(
                     {"user_id": recipient_id},
                     {"$set": {"balance": new_recipient_balance}}
                 )
-            
-            # Send the result message to the user (without mentioning the transfer)
+
             await interaction.response.send_message(
                 f"The coin landed on **{result}**! You chose **{choice.name}** and bet **{amount}**.\n"
                 f"You lost! Your new balance is: **{new_balance}**."
