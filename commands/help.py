@@ -28,7 +28,7 @@ class Help(commands.Cog):
             description="The best bot ever made on the face of the planet"
         )
         example_embed.set_author(
-            name="Money Bot v4",
+            name="Money Bot v0.0.6",
             icon_url="https://media.discordapp.net/attachments/958955499565514795/1086017019440275507/8D7BD66D-2628-4E8F-8DFE-2ECC00FB9D35.jpg?width=842&height=1122",
             url="https://git.rethinkingrn.xyz/matthew/moneybot"
         )
