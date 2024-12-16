@@ -18,31 +18,38 @@ class Shop(commands.Cog):
 
         embed = discord.Embed(
             title="Shop Items",
-            description="Here are the items you can purchase:",
+            description="Here are the items you can purchase (use the index number to buy):",
             color=discord.Color.gold()
         )
 
-        for item in shop_items:
+        for index, item in enumerate(shop_items, start=1):
             embed.add_field(
-                name=f"{item['name']} - {item['price']} coins",
+                name=f"{index}. {item['name']} - {item['price']} coins",
                 value=item.get('description', 'No description available.'),
                 inline=False
             )
 
         await interaction.response.send_message(embed=embed)
 
-    @discord.app_commands.command(name="buy", description="Purchase an item from the shop.")
-    async def buy(self, interaction: discord.Interaction, item_name: str):
-        """Slash command to purchase an item."""
+    @discord.app_commands.command(name="buy", description="Purchase an item from the shop using its index number.")
+    async def buy(self, interaction: discord.Interaction, item_index: int):
+        """Slash command to purchase an item by index."""
         shop_collection = self.bot.db["shop"]
         users_collection = self.bot.db["users"]
 
-        # Find the item in the shop
-        item = shop_collection.find_one({"name": item_name})
-
-        if not item:
-            await interaction.response.send_message("Item not found in the shop.", ephemeral=True)
+        # Fetch all items
+        shop_items = list(shop_collection.find())
+        if not shop_items:
+            await interaction.response.send_message("The shop is currently empty.", ephemeral=True)
             return
+
+        # Check if the index is valid
+        if item_index < 1 or item_index > len(shop_items):
+            await interaction.response.send_message("Invalid item index. Please check the shop and try again.", ephemeral=True)
+            return
+
+        # Get the item based on the index
+        item = shop_items[item_index - 1]
 
         # Get the user's wallet using a string user_id
         user_id = str(interaction.user.id)  # Convert user ID to string
@@ -82,10 +89,11 @@ class Shop(commands.Cog):
             f"Successfully purchased {item['name']} for {item['price']} coins! "
             f"Your new balance is {new_balance} coins."
         )
+
     @discord.app_commands.command(name="inventory", description="View your purchased items.")
     async def inventory(self, interaction: discord.Interaction):
         """Slash command to display the user's inventory."""
-        users_collection = self.bot.db["users"]
+        users_collection = self.bot.db["users"] 
 
         # Use string user_id for consistency
         user_id = str(interaction.user.id)
@@ -109,5 +117,6 @@ class Shop(commands.Cog):
             )
 
         await interaction.response.send_message(embed=embed)
+
 async def setup(bot):
     await bot.add_cog(Shop(bot))
