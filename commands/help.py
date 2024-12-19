@@ -28,7 +28,7 @@ class Help(commands.Cog):
             description="The best bot ever made on the face of the planet"
         )
         example_embed.set_author(
-            name="Money Bot v0.0.6",
+            name="Money Bot v0.0.752",
             icon_url="https://media.discordapp.net/attachments/958955499565514795/1086017019440275507/8D7BD66D-2628-4E8F-8DFE-2ECC00FB9D35.jpg?width=842&height=1122",
             url="https://git.rethinkingrn.xyz/matthew/moneybot"
         )
@@ -41,12 +41,12 @@ class Help(commands.Cog):
                                 `/blackjack`
                                 `/coinflip`
                                 `/give`
-                                `/hello`
+                                `/losstop`
                                 `/help`
                                 `/roll`
                                 `/setbalance`
                                 """)
-        example_embed.add_field(name="Info", value="Version: 0.0.4 \"Orange Chicken\"")
+        example_embed.add_field(name="Info", value="Version: 0.0.752 \"borderline schizo bananas\"")
         example_embed.set_footer(
             text="Made entirely with ChatGPT",
             icon_url="https://media.discordapp.net/attachments/1075640589573439569/1086040981276725268/16c96414abdd7b11c1c4e3854ec978db.png?width=512&height=512"

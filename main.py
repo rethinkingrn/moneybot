@@ -55,7 +55,7 @@ async def setup_hook():
     await bot.load_extension('commands.losstop')
     await bot.load_extension('commands.shop')
     await bot.load_extension('commands.avatar_tracker')
-
+    await bot.load_extension('commands.status_tracker')
 
 # Run the bot
 bot.run(TOKEN)
