@@ -117,7 +117,9 @@ class StatusTracker(commands.Cog):
                 if channel_id:
                     channel = self.bot.get_channel(channel_id)
                     if channel:
-                        await channel.send(f"{after.mention} changed their status from `{old_status}` to `{new_status}`.")
+                        # Sending message without pinging the user
+                        await channel.send(f"{after.name} changed their status from `{old_status}` to `{new_status}`.")
+
 
 async def setup(bot):
     await bot.add_cog(StatusTracker(bot))
