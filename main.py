@@ -27,7 +27,11 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Activity(type=discord.ActivityType.watching, name="people crashout in realtime"))
+    await bot.change_presence(activity=discord.Streaming(
+    name="trumpe free download 100% free no virus full punjabi movie free download 2018",
+    url="https://www.twitch.tv/x0xp"  # Replace with a valid URL
+))
+
     bot.uptime = time.time() - start_time
     print(f'We have logged in as {bot.user}')
     try:
