@@ -2,6 +2,12 @@ import discord
 from discord.ext import commands
 from datetime import datetime
 
+AUTHORIZED_USER_ID = 183743105688797184
+
+def is_authorized_user(interaction: discord.Interaction):
+    """Check if the user is authorized."""
+    return interaction.user.id == AUTHORIZED_USER_ID
+
 class ActivityTracker(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -37,12 +43,14 @@ class ActivityTracker(commands.Cog):
                 }
 
     @discord.app_commands.command(name="setactivitychannel", description="Set the default channel for activity notifications.")
+    @discord.app_commands.check(is_authorized_user)
     async def set_activity_channel(self, interaction: discord.Interaction, channel: discord.TextChannel):
         """Set the default notification channel for activity changes."""
         self.notification_channel = channel.id
         await interaction.response.send_message(f"Default activity notifications will be sent to {channel.mention}.", ephemeral=True)
 
     @discord.app_commands.command(name="trackactivity", description="Start tracking a user's activities.")
+    @discord.app_commands.check(is_authorized_user)
     async def track_activity(self, interaction: discord.Interaction, user: discord.User, channel: discord.TextChannel = None):
         """Start tracking a user's activities."""
         if str(user.id) in self.tracked_users:
@@ -59,6 +67,7 @@ class ActivityTracker(commands.Cog):
             )
 
     @discord.app_commands.command(name="untrackactivity", description="Stop tracking a user's activities.")
+    @discord.app_commands.check(is_authorized_user)
     async def untrack_activity(self, interaction: discord.Interaction, user: discord.User):
         """Stop tracking a user's activities."""
         if str(user.id) in self.tracked_users:
@@ -69,6 +78,7 @@ class ActivityTracker(commands.Cog):
             await interaction.response.send_message(f"{user.name} is not being tracked.", ephemeral=True)
 
     @discord.app_commands.command(name="listtrackedactivities", description="List all currently tracked users and their channels.")
+    @discord.app_commands.check(is_authorized_user)
     async def list_tracked_activities(self, interaction: discord.Interaction):
         """List all tracked users and their notification channels."""
         if not self.tracked_users:
@@ -129,10 +139,6 @@ class ActivityTracker(commands.Cog):
                         message += f"\n{activity_details}"
                     if channel:
                         await channel.send(message)
-                elif old_activities[activity_name]["start_time"] != data["start_time"]:
-                    # Continued activity
-                    if channel:
-                        await channel.send(f"`{after.name}` is still doing **{activity_name}**.")
 
             # Update tracked data
             self.tracked_users[user_id]["activities"] = new_activities
@@ -154,6 +160,7 @@ class ActivityTracker(commands.Cog):
                 elif activity.type == discord.ActivityType.custom:
                     return f"💬 Custom status: {activity.name or ''} {activity.state or ''}"
         return None
+
 
 async def setup(bot):
     await bot.add_cog(ActivityTracker(bot))
