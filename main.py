@@ -1,12 +1,8 @@
 import os
-from dotenv import load_dotenv
 import discord
 from discord.ext import commands
 from pymongo import MongoClient
 import time
-
-# Load environment variables from .env file
-load_dotenv()
 
 # Get the token and MongoDB URI from the environment variables
 TOKEN = os.getenv('DISCORD_TOKEN')
@@ -28,7 +24,7 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 @bot.event
 async def on_ready():
     await bot.change_presence(activity=discord.Streaming(
-    name="trumpe free download 100% free no virus full punjabi movie free download 2018",
+    name="free fortnite vbucks glitch👉👉👉TAP IN ",
     url="https://www.twitch.tv/x0xp"  # Replace with a valid URL
 ))
 
