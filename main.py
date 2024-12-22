@@ -3,6 +3,9 @@ import discord
 from discord.ext import commands
 from pymongo import MongoClient
 import time
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Get the token and MongoDB URI from the environment variables
 TOKEN = os.getenv('DISCORD_TOKEN')
