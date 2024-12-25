@@ -19,14 +19,10 @@ class StatusTracker(commands.Cog):
         data = self.db.find_one({"setting": "status_data"})
         if data:
             self.tracked_users = data.get("tracked_users", {})
-            if not isinstance(self.tracked_users, dict):
-                self.tracked_users = {}
             self.notification_channel = data.get("default_channel")
 
     def _save_data(self):
         """Save the tracked users to the database."""
-        if not isinstance(self.tracked_users, dict):
-            self.tracked_users = {}
         self.db.update_one(
             {"setting": "status_data"},
             {"$set": {"tracked_users": self.tracked_users, "default_channel": self.notification_channel}},
@@ -50,8 +46,9 @@ class StatusTracker(commands.Cog):
         else:
             self.tracked_users[str(user.id)] = {
                 "status": str(user.status),
+                "start_time": datetime.utcnow().isoformat(),
+                "longest_session": 0,
                 "channel_id": channel.id if channel else None,
-                "start_time": datetime.utcnow().isoformat(),  # Add start time
             }
             self._save_data()
             channel_info = f"in {channel.mention}" if channel else "in the default notification channel"
@@ -86,11 +83,41 @@ class StatusTracker(commands.Cog):
             channel_id = data.get("channel_id")
             channel_mention = f"<#{channel_id}>" if channel_id else f"<#{self.notification_channel}> (default)"
             user = self.bot.get_user(int(user_id)) or await self.bot.fetch_user(int(user_id))
+            longest_time = str(timedelta(seconds=data.get("longest_session", 0))).split(".")[0]
             embed.add_field(
                 name=f"{user.name}#{user.discriminator} ({user.id})",
-                value=f"Notification Channel: {channel_mention}",
+                value=f"Notification Channel: {channel_mention}\nLongest Session: {longest_time}",
                 inline=False,
             )
+
+        await interaction.response.send_message(embed=embed)
+    @discord.app_commands.command(name="statusleaderboard", description="Show the leaderboard for the longest status sessions.")
+    @discord.app_commands.check(is_authorized_user)
+    async def status_leaderboard(self, interaction: discord.Interaction):
+        """Display a leaderboard of the longest status sessions."""
+        if not self.tracked_users:
+            await interaction.response.send_message("No status data available for the leaderboard.", ephemeral=True)
+            return
+
+        leaderboard = []
+        for user_id, data in self.tracked_users.items():
+            longest_session = data.get("longest_session", 0)
+            if longest_session > 0:
+                user = self.bot.get_user(int(user_id)) or await self.bot.fetch_user(int(user_id))
+                leaderboard.append((user.name, longest_session))
+
+        # Sort leaderboard by session duration in descending order
+        leaderboard.sort(key=lambda x: x[1], reverse=True)
+
+        embed = discord.Embed(
+            title="Status Leaderboard",
+            description="Top users with the longest status sessions.",
+            color=discord.Color.green(),
+        )
+
+        for rank, (user_name, duration) in enumerate(leaderboard[:10], start=1):  # Top 10
+            formatted_duration = str(timedelta(seconds=duration)).split(".")[0]
+            embed.add_field(name=f"#{rank} {user_name}", value=f"Longest Session: {formatted_duration}", inline=False)
 
         await interaction.response.send_message(embed=embed)
 
@@ -99,31 +126,51 @@ class StatusTracker(commands.Cog):
         """Triggered when a user's presence updates."""
         if str(after.id) in self.tracked_users:
             tracked_data = self.tracked_users[str(after.id)]
-            old_status = tracked_data["status"]
+            old_status = tracked_data.get("status")
             new_status = str(after.status)
-            start_time = datetime.fromisoformat(tracked_data.get("start_time", datetime.utcnow().isoformat()))
+
+            now = datetime.utcnow()
 
             if old_status != new_status:
-                # Calculate elapsed time
-                now = datetime.utcnow()
+                # Calculate the elapsed time for the previous status
+                start_time = datetime.fromisoformat(tracked_data.get("start_time", now.isoformat()))
                 elapsed = now - start_time
-                elapsed_str = str(timedelta(seconds=elapsed.total_seconds())).split(".")[0]  # Format elapsed time
+                elapsed_seconds = elapsed.total_seconds()
 
-                # Determine the notification channel
-                channel_id = tracked_data.get("channel_id", self.notification_channel)
-                if channel_id:
-                    channel = self.bot.get_channel(channel_id)
-                    if channel:
-                        await channel.send(
-                            f"`{after.name}` changed their status from `{old_status}` to `{new_status}`. "
-                            f"They were in `{old_status}` for **{elapsed_str}**."
-                        )
+                # Update the longest session if applicable
+                if elapsed_seconds > tracked_data.get("longest_session", 0):
+                    tracked_data["longest_session"] = elapsed_seconds
+                    longest_time = str(timedelta(seconds=elapsed_seconds)).split(".")[0]
+
+                    # Notify about the new longest session
+                    channel_id = tracked_data.get("channel_id", self.notification_channel)
+                    if channel_id:
+                        channel = self.bot.get_channel(channel_id)
+                        if channel:
+                            await channel.send(
+                                f"{after.name} achieved a new longest session of **{longest_time}** on status `{old_status}`."
+                            )
+
+                # Log session data into the database
+                self.db.update_one(
+                    {"user_id": str(after.id)},
+                    {
+                        "$push": {
+                            "sessions": {
+                                "status": old_status,
+                                "start_time": tracked_data.get("start_time"),
+                                "end_time": now.isoformat(),
+                                "duration": elapsed_seconds,
+                            }
+                        }
+                    },
+                    upsert=True,
+                )
 
                 # Update the tracked status and start time
-                self.tracked_users[str(after.id)]["status"] = new_status
-                self.tracked_users[str(after.id)]["start_time"] = now.isoformat()
+                tracked_data["status"] = new_status
+                tracked_data["start_time"] = now.isoformat()
                 self._save_data()
-
 
 async def setup(bot):
     await bot.add_cog(StatusTracker(bot))
