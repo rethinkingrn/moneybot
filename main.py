@@ -26,11 +26,6 @@ bot = commands.Bot(command_prefix="!", intents=intents)
 
 @bot.event
 async def on_ready():
-    await bot.change_presence(activity=discord.Streaming(
-    name="free fortnite vbucks glitch👉👉👉TAP IN ",
-    url="https://www.twitch.tv/x0xp"  # Replace with a valid URL
-))
-
     bot.uptime = time.time() - start_time
     print(f'We have logged in as {bot.user}')
     try:
@@ -60,6 +55,8 @@ async def setup_hook():
     await bot.load_extension('commands.avatar_tracker')
     await bot.load_extension('commands.status_tracker')
     await bot.load_extension('commands.activity_tracker')
+    await bot.load_extension('commands.pfp_rotation')
+    await bot.load_extension('commands.status_rotation')
 
 # Run the bot
 bot.run(TOKEN)
