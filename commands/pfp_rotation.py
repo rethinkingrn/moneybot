@@ -6,6 +6,7 @@ class ProfilePictureRotator(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
         self.db = bot.db["profile_picture_rotator"]  # MongoDB collection
+        self.profile_pictures = []  # List of profile pictures
         self.current_index = 0  # Track the current picture index
         self.rotation_interval = 60  # Default interval in seconds
         self.rotation_task = None  # Rotation task instance
@@ -64,12 +65,24 @@ class ProfilePictureRotator(commands.Cog):
     async def list_profile_pictures(self, interaction: discord.Interaction):
         """List all profile pictures in the rotation."""
         if not self.profile_pictures:
-            await interaction.response.send_message("No profile pictures in the rotation list.", ephemeral=True)
-        else:
-            embed = discord.Embed(title="Profile Picture Rotation List", color=discord.Color.blue())
-            for index, url in enumerate(self.profile_pictures, start=1):
-                embed.add_field(name=f"Picture {index}", value=url, inline=False)
-            await interaction.response.send_message(embed=embed, ephemeral=True)
+            await interaction.response.send_message("No profile pictures in the rotation.", ephemeral=True)
+            return
+
+        # Split into chunks of 25 for embeds
+        chunks = [self.profile_pictures[i:i + 25] for i in range(0, len(self.profile_pictures), 25)]
+
+        # Acknowledge the interaction first
+        await interaction.response.send_message(f"Displaying profile pictures ({len(self.profile_pictures)} total):", ephemeral=True)
+
+        # Send chunks as follow-up messages
+        for index, chunk in enumerate(chunks):
+            embed = discord.Embed(
+                title=f"Profile Pictures (Page {index + 1}/{len(chunks)})",
+                color=discord.Color.blue()
+            )
+            for i, url in enumerate(chunk, start=index * 25 + 1):
+                embed.add_field(name=f"Picture {i}", value=f"[View Image]({url})", inline=False)
+            await interaction.followup.send(embed=embed, ephemeral=True)
 
     @discord.app_commands.command(name="setrotationinterval", description="Set the interval for profile picture rotation.")
     @discord.app_commands.check(is_authorized_user)
@@ -106,7 +119,6 @@ class ProfilePictureRotator(commands.Cog):
             await interaction.response.send_message("Profile picture rotation has been stopped.", ephemeral=True)
         else:
             await interaction.response.send_message("Profile picture rotation is not currently running.", ephemeral=True)
-
 
     @tasks.loop(seconds=1)  # Placeholder; interval is dynamically set below
     async def _rotate_profile_pictures(self):

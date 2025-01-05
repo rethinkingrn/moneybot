@@ -1,5 +1,6 @@
 import discord
 from discord.ext import commands
+from discord.ui import Button, View 
 
 class Shop(commands.Cog):
     def __init__(self, bot):
@@ -92,9 +93,9 @@ class Shop(commands.Cog):
 
     @discord.app_commands.command(name="inventory", description="View your purchased items.")
     async def inventory(self, interaction: discord.Interaction):
-        """Slash command to display the user's inventory."""
-        users_collection = self.bot.db["users"] 
-
+        """Slash command to display the user's inventory with pagination."""
+        users_collection = self.bot.db["users"]
+        
         # Use string user_id for consistency
         user_id = str(interaction.user.id)
         user_data = users_collection.find_one({"user_id": user_id})
@@ -103,20 +104,66 @@ class Shop(commands.Cog):
             await interaction.response.send_message("Your inventory is empty.", ephemeral=True)
             return
 
-        embed = discord.Embed(
-            title=f"{interaction.user.display_name}'s Inventory",
-            description="Here are the items you own:",
-            color=discord.Color.green()
-        )
+        # Items per page
+        items_per_page = 5
+        inventory = user_data["inventory"]
 
-        for item in user_data["inventory"]:
-            embed.add_field(
-                name=f"{item['name']} - {item['price']} coins",
-                value="Owned",
-                inline=False
+        # Calculate the total number of pages
+        total_pages = (len(inventory) + items_per_page - 1) // items_per_page  # ceil division
+
+        # Create a helper function to build the embed for a page
+        def create_inventory_embed(page: int):
+            start = (page - 1) * items_per_page
+            end = start + items_per_page
+            items_on_page = inventory[start:end]
+
+            embed = discord.Embed(
+                title=f"{interaction.user.display_name}'s Inventory (Page {page}/{total_pages})",
+                description="Here are the items you own:",
+                color=discord.Color.green()
             )
 
-        await interaction.response.send_message(embed=embed)
+            for item in items_on_page:
+                embed.add_field(
+                    name=f"{item['name']} - {item['price']} coins",
+                    value="Owned",
+                    inline=False
+                )
+
+            return embed
+
+        # Create the embed for the first page
+        embed = create_inventory_embed(1)
+
+        # Create navigation buttons
+        async def on_next_button_click(interaction):
+            nonlocal page
+            if page < total_pages:
+                page += 1
+                embed = create_inventory_embed(page)
+                await interaction.response.edit_message(embed=embed, view=view)
+
+        async def on_previous_button_click(interaction):
+            nonlocal page
+            if page > 1:
+                page -= 1
+                embed = create_inventory_embed(page)
+                await interaction.response.edit_message(embed=embed, view=view)
+
+        page = 1
+        next_button = Button(label="Next", style=discord.ButtonStyle.primary)
+        next_button.callback = on_next_button_click
+
+        previous_button = Button(label="Previous", style=discord.ButtonStyle.primary)
+        previous_button.callback = on_previous_button_click
+
+        # Create a view to hold the buttons
+        view = View()
+        view.add_item(previous_button)
+        view.add_item(next_button)
+
+        # Send the first embed with navigation buttons
+        await interaction.response.send_message(embed=embed, view=view)
 
 async def setup(bot):
     await bot.add_cog(Shop(bot))

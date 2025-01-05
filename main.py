@@ -10,7 +10,6 @@ load_dotenv()
 # Get the token and MongoDB URI from the environment variables
 TOKEN = os.getenv('DISCORD_TOKEN')
 MONGODB_URI = os.getenv('MONGODB_URI')
-
 # Set up the MongoDB client
 mongo_client = MongoClient(MONGODB_URI)
 db = mongo_client['discord']  # Access the 'discord' database
@@ -56,6 +55,7 @@ async def setup_hook():
     await bot.load_extension('commands.status_tracker')
     await bot.load_extension('commands.activity_tracker')
     await bot.load_extension('commands.pfp_rotation')
+    await bot.load_extension('commands.ollama')
     await bot.load_extension('commands.status_rotation')
 
 # Run the bot
