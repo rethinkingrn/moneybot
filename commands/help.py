@@ -61,7 +61,7 @@ class Help(commands.Cog):
                                 `/untrackavatar`
                                 `/untrackstatus`
                                 """)
-        example_embed.add_field(name="Info", value="Version: 0.0.8 \"Diddy Party\"")
+        example_embed.add_field(name="Info", value="Version: 0.0.93 \"Obsessed Orange\"")
         example_embed.set_footer(
             text="Made entirely with ChatGPT",
             icon_url="https://media.discordapp.net/attachments/1075640589573439569/1086040981276725268/16c96414abdd7b11c1c4e3854ec978db.png?width=512&height=512"

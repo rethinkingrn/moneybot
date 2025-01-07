@@ -1,6 +1,7 @@
 import discord
 from discord.ext import commands
 from datetime import datetime, timedelta
+import asyncio
 
 class StatusTracker(commands.Cog):
     def __init__(self, bot):
@@ -8,6 +9,7 @@ class StatusTracker(commands.Cog):
         self.tracked_users = {}  # Dictionary to hold user-specific tracking data
         self.notification_channel = None  # Default notification channel
         self.db = bot.db["status_tracker"]  # MongoDB collection for status tracking
+        self.recent_updates = {}  # Track recent updates to debounce duplicate events
         self._load_data()  # Load existing data from the database
 
     def is_authorized_user(interaction: discord.Interaction):
@@ -93,37 +95,55 @@ class StatusTracker(commands.Cog):
             )
 
         await interaction.response.send_message(embed=embed)
-
+        
     @commands.Cog.listener()
     async def on_presence_update(self, before: discord.Member, after: discord.Member):
         """Triggered when a user's presence updates."""
-        if str(after.id) in self.tracked_users:
-            tracked_data = self.tracked_users[str(after.id)]
-            old_status = tracked_data["status"]
-            new_status = str(after.status)
-            start_time = datetime.fromisoformat(tracked_data.get("start_time", datetime.utcnow().isoformat()))
+        user_id = str(after.id)
+        if user_id not in self.tracked_users:
+            return  # Skip if the user isn't being tracked
 
-            if old_status != new_status:
-                # Calculate elapsed time
-                now = datetime.utcnow()
-                elapsed = now - start_time
-                elapsed_str = str(timedelta(seconds=elapsed.total_seconds())).split(".")[0]  # Format elapsed time
+        tracked_data = self.tracked_users[user_id]
+        old_status = tracked_data["status"]
+        new_status = str(after.status)
+        start_time = datetime.fromisoformat(tracked_data.get("start_time", datetime.utcnow().isoformat()))
 
-                # Determine the notification channel
-                channel_id = tracked_data.get("channel_id", self.notification_channel)
-                if channel_id:
-                    channel = self.bot.get_channel(channel_id)
-                    if channel:
-                        await channel.send(
-                            f"`{after.name}` changed their status from `{old_status}` to `{new_status}`. "
-                            f"They were in `{old_status}` for **{elapsed_str}**."
-                        )
+        # Only process if the actual status changed
+        if old_status == new_status:
+            return
 
-                # Update the tracked status and start time
-                self.tracked_users[str(after.id)]["status"] = new_status
-                self.tracked_users[str(after.id)]["start_time"] = now.isoformat()
-                self._save_data()
+        # Implement debounce mechanism
+        now = datetime.utcnow()
+        if user_id in self.recent_updates:
+            last_update = self.recent_updates[user_id]
+            if (now - last_update).total_seconds() < 1:  # 1-second debounce
+                return
 
+        # Update the last processed time
+        self.recent_updates[user_id] = now
+
+        # Calculate elapsed time
+        elapsed = now - start_time
+        elapsed_str = str(timedelta(seconds=elapsed.total_seconds())).split(".")[0]  # Format elapsed time
+
+        # Determine the notification channel
+        channel_id = tracked_data.get("channel_id", self.notification_channel)
+        if channel_id:
+            channel = self.bot.get_channel(channel_id)
+            if channel:
+                await channel.send(
+                    f"`{after.name}` changed their status from `{old_status}` to `{new_status}`. "
+                    f"They were in `{old_status}` for **{elapsed_str}**."
+                )
+
+        # Update the tracked status and start time
+        self.tracked_users[user_id]["status"] = new_status
+        self.tracked_users[user_id]["start_time"] = now.isoformat()
+        self._save_data()
+
+        # Clean up old entries from recent updates after 10 seconds
+        await asyncio.sleep(10)
+        self.recent_updates.pop(user_id, None)
 
 async def setup(bot):
     await bot.add_cog(StatusTracker(bot))
