@@ -55,7 +55,6 @@ async def setup_hook():
     await bot.load_extension('commands.status_tracker')
     await bot.load_extension('commands.activity_tracker')
     await bot.load_extension('commands.pfp_rotation')
-    await bot.load_extension('commands.ollama')
     await bot.load_extension('commands.status_rotation')
     await bot.load_extension("commands.message_logger")
     await bot.load_extension("commands.hour_stats")

@@ -48,7 +48,17 @@ class SpeechAnalyzer(commands.Cog):
         try:
             response = requests.post(
                 f"{self.ollama_url}",
-                json={"model": "dolphin-mistral", "prompt": prompt, "stream": False},
+                json={                    
+                    "model": "dolphin-mistral",
+                    "prompt": prompt,
+                    "stream": False,
+                    "options": {
+                        "temperature": 0.9,
+                        "top_p": 0.95,
+                        "max_tokens": 2000,
+                        "stop": ["\n\n"],
+                    }
+                }
             )
 
             if response.status_code == 200:
@@ -87,6 +97,61 @@ class SpeechAnalyzer(commands.Cog):
             await interaction.response.send_message("You are not authorized to use this command.", ephemeral=True)
         else:
             await interaction.followup.send("An unexpected error occurred while processing the request.")
+    @discord.app_commands.command(
+        name="fan", 
+        description="you a fan"
+    )
+    async def mimic_with_prompt(self, interaction: discord.Interaction, user: discord.User, prompt: str):
+        """
+        Generate a response mimicking a user's speech patterns based on their last messages and a custom prompt. 
+        """
+        # Defer the response to allow processing time
+        await interaction.response.defer()
+
+        # Fetch the most recent 50 messages from MongoDB
+        from bson import Int64
+        messages = list(
+            self.collection.find({"author_id": Int64(user.id)})
+            .sort("timestamp", -1)  # Sort by timestamp in descending order
+            .limit(150) # adjust this amount
+        )
+
+        if not messages:
+            await interaction.followup.send(f"No messages found for {user.name}.")
+            return
+
+        # Compile user messages into a single text input
+        content = "\n".join(msg["content"] for msg in messages if "content" in msg)
+        full_prompt = (
+            f"The following is a collection of messages written by the user:\n\n{content}\n\n"
+            f"Based on these messages, generate a response to the following prompt in the user's speech style:\n\n"
+            f"{prompt}\n"
+        )
+
+        # Make the API call to Ollama
+        try:
+            response = requests.post(
+                f"{self.ollama_url}",
+                json={"model": "dolphin-mistral", "prompt": full_prompt, "stream": False},
+            )
+
+            if response.status_code == 200:
+                data = response.json()
+                generated_response = data.get("response", "No response received from the model.")
+
+                # Create an embed to display the generated response
+                embed = discord.Embed(
+                    title=f"Generated Response for {user.name}",
+                    description=generated_response,
+                    color=discord.Color.blue()
+                )
+                embed.set_footer(text="zxuu changed their status from dnd to online. They were in dnd for 9 days, 5:59:57.")
+                await interaction.followup.send(embed=embed)
+
+            else:
+                await interaction.followup.send(f"Failed to generate a response. API returned {response.status_code}.")
+        except requests.RequestException as e:
+            await interaction.followup.send(f"An error occurred while connecting to the Ollama API: {str(e)}")
 
 async def setup(bot):
     await bot.add_cog(SpeechAnalyzer(bot))
