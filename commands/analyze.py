@@ -113,7 +113,7 @@ class SpeechAnalyzer(commands.Cog):
         messages = list(
             self.collection.find({"author_id": Int64(user.id)})
             .sort("timestamp", -1)  # Sort by timestamp in descending order
-            .limit(150) # adjust this amount
+            .limit(75) # adjust this amount
         )
 
         if not messages:
@@ -145,6 +145,7 @@ class SpeechAnalyzer(commands.Cog):
                     description=generated_response,
                     color=discord.Color.blue()
                 )
+                embed.set_thumbnail(url=user.display_avatar.url)
                 embed.set_footer(text="zxuu changed their status from dnd to online. They were in dnd for 9 days, 5:59:57.")
                 await interaction.followup.send(embed=embed)
 
