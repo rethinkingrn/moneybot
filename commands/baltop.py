@@ -18,7 +18,7 @@ class Baltop(commands.Cog):
                 return await interaction.followup.send("No users found.")  # Follow up with a message
 
             # Create the embed
-            embed = discord.Embed(title="Top 10 Users by Balance", color=0x00AE86)
+            embed = discord.Embed(title="Top 10 people with the most motion", color=0x00AE86)
 
             for index, user in enumerate(top_users):
                 user_id = int(user["user_id"])

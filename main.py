@@ -48,7 +48,6 @@ async def setup_hook():
     await bot.load_extension('commands.reaction_tracker')
     await bot.load_extension('commands.give')
     await bot.load_extension('commands.balance')
-    await bot.load_extension('commands.roll')
     await bot.load_extension('commands.losstop')
     await bot.load_extension('commands.shop')
     await bot.load_extension('commands.avatar_tracker')
@@ -57,7 +56,6 @@ async def setup_hook():
     await bot.load_extension('commands.pfp_rotation')
     await bot.load_extension('commands.status_rotation')
     await bot.load_extension("commands.message_logger")
-    await bot.load_extension("commands.hour_stats")
     await bot.load_extension("commands.analyze")
 
 

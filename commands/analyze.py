@@ -108,7 +108,6 @@ class SpeechAnalyzer(commands.Cog):
         # Defer the response to allow processing time
         await interaction.response.defer()
 
-        # Fetch the most recent 50 messages from MongoDB
         from bson import Int64
         messages = list(
             self.collection.find({"author_id": Int64(user.id)})
