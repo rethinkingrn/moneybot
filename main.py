@@ -57,6 +57,7 @@ async def setup_hook():
     await bot.load_extension('commands.status_rotation')
     await bot.load_extension("commands.message_logger")
     await bot.load_extension("commands.analyze")
+    await bot.load_extension("commands.generate")
 
 
 # Run the bot

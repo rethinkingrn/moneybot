@@ -27,7 +27,6 @@ class Help(commands.Cog):
                                 `/balance`
                                 `/baltop`
                                 `/banner`
-                                `/blackjack`
                                 `/coinflip`
                                 `/give`
                                 `/listtackedactivities`
@@ -36,7 +35,6 @@ class Help(commands.Cog):
                                 `/losstop`
                                 `/help`
                                 `/roll`
-                                `/setbalance`
                                 """)
         example_embed.set_footer(
             text="Made entirely with ChatGPT and Deepseek",

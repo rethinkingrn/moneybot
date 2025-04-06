@@ -1,4 +1,4 @@
-# MoneyBot v0.0.808 - Crashout Edition
+# MoneyBot v0.0.808000001 - Green Pumpkin
 Discord bot made entirely with ChatGPT and Deepseek, there will be no support provided
 
 I don't think i've typed a single line of code in myself
