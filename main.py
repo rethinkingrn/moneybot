@@ -58,6 +58,7 @@ async def setup_hook():
     await bot.load_extension("commands.message_logger")
     await bot.load_extension("commands.analyze")
     await bot.load_extension("commands.generate")
+    await bot.load_extension("commands.auto_banner")
 
 
 # Run the bot
