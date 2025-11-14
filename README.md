@@ -1,5 +1,5 @@
 # MoneyBot v0.0.90402734201 - Cosemetic Carrot
-Discord bot made entirely with ChatGPT and Deepseek, there will be no support provided
+Discord bot made entirely with Cursor, ChatGPT, Claude, and Deepseek, there will be no support provided
 
 I don't think i've typed a single line of code in myself
 
@@ -26,3 +26,4 @@ I don't think i've typed a single line of code in myself
 - Fix start.sh (Get rid of absolute paths or change it)
 - Fix hardcoded user id in some of the commands
 - Profile picture rotation (seems to only rotate between 5 pictures max)
+- Cleanup the code

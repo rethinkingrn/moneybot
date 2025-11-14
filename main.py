@@ -59,7 +59,7 @@ async def setup_hook():
     await bot.load_extension("commands.analyze")
     await bot.load_extension("commands.generate")
     await bot.load_extension("commands.auto_banner")
-
+    await bot.load_extension("commands.google_search")
 
 # Run the bot
 bot.run(TOKEN)

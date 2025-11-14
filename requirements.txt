@@ -3,3 +3,4 @@ pymongo
 aiohttp
 python-dotenv
 requests
+ddgs
