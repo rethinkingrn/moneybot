@@ -67,8 +67,8 @@ class AvatarTracker(commands.Cog):
     async def upload_to_file_sharing(self, image_bytes: bytes) -> Optional[str]:
         """Upload an image to the Copyparty file-sharing service and return the URL."""
         # Base URL from your curl command
-        base_url = os.getenv("COPYPARTY_URL", "http://127.0.0.1:3923")
-        password = os.getenv("COPYPARTY_PASSWORD", "wark")
+        base_url = os.getenv("COPYPARTY_URL")
+        password = os.getenv("COPYPARTY_PASSWORD")
 
         # Construct the upload URL (add a filename at the end for PUT)
         filename = f"avatar_{int(time.time())}.jpg"  # Add timestamp to avoid collisions
